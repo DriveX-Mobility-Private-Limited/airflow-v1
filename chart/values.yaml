@@ -132,9 +132,10 @@ nodeSelector:
   if-data-warehouse-pod: "true"
 affinity: {}
 tolerations:
-  - key: "if-monitoring-pod"
-    operator: "Equal"
-    value: "true"
+  - key: if-data-warehouse-pod
+    operator: Equal
+    value: 'true'
+  - effect: NoExecute
 topologySpreadConstraints: []
 schedulerName: ~
 
@@ -964,9 +965,10 @@ workers:
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
   tolerations:
-    - key: "if-monitoring-pod"
-      operator: "Equal"
-      value: "true"
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
   topologySpreadConstraints: []
   # hostAliases to use in Airflow Celery worker pods and pods created with pod-template-file
   # See:
@@ -1484,9 +1486,10 @@ scheduler:
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
   tolerations:
-    - key: "if-monitoring-pod"
-      operator: "Equal"
-      value: "true"
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -1886,9 +1889,10 @@ apiServer:
     if-data-warehouse-pod: "true"
   affinity: {}
   tolerations:
-    - key: "if-monitoring-pod"
-      operator: "Equal"
-      value: "true"
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -2180,9 +2184,10 @@ webserver:
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
   tolerations:
-    - key: "if-monitoring-pod"
-      operator: "Equal"
-      value: "true"
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
   topologySpreadConstraints: []
 
   # annotations for webserver deployment
@@ -2337,9 +2342,10 @@ triggerer:
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
   tolerations:
-    - key: "if-monitoring-pod"
-      operator: "Equal"
-      value: "true"
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
   topologySpreadConstraints: []
 
   #  hostAliases for the triggerer pod
@@ -2590,9 +2596,10 @@ dagProcessor:
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
   tolerations:
-    - key: "if-monitoring-pod"
-      operator: "Equal"
-      value: "true"
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -2785,9 +2792,10 @@ flower:
     if-data-warehouse-pod: "true"
   affinity: {}
   tolerations:
-    - key: "if-monitoring-pod"
-      operator: "Equal"
-      value: "true"
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -2900,9 +2908,10 @@ statsd:
     if-data-warehouse-pod: "true"
   affinity: {}
   tolerations:
-    - key: "if-monitoring-pod"
-      operator: "Equal"
-      value: "true"
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -3069,9 +3078,10 @@ pgbouncer:
     if-data-warehouse-pod: "true"
   affinity: {}
   tolerations:
-    - key: "if-monitoring-pod"
-      operator: "Equal"
-      value: "true"
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -3229,9 +3239,10 @@ redis:
     if-data-warehouse-pod: "true"
   affinity: {}
   tolerations:
-    - key: "if-monitoring-pod"
-      operator: "Equal"
-      value: "true"
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
   topologySpreadConstraints: []
   priorityClassName: ~
 
@@ -3350,9 +3361,10 @@ cleanup:
     if-data-warehouse-pod: "true"
   affinity: {}
   tolerations:
-    - key: "if-monitoring-pod"
-      operator: "Equal"
-      value: "true"
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
   topologySpreadConstraints: []
   priorityClassName: ~
 
@@ -3444,9 +3456,10 @@ databaseCleanup:
     if-data-warehouse-pod: "true"
   affinity: {}
   tolerations:
-    - key: "if-monitoring-pod"
-      operator: "Equal"
-      value: "true"
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
   topologySpreadConstraints: []
   priorityClassName: ~
 
@@ -3506,6 +3519,16 @@ postgresql:
     postgresPassword: postgres
     username: ""
     password: ""
+  primary:
+    persistence:
+      storageClass: "gp2"
+    nodeSelector:
+      if-data-warehouse-pod: "true"
+    tolerations:
+      - key: if-data-warehouse-pod
+        operator: Equal
+        value: 'true'
+      - effect: NoExecute
 
 # Config settings to go into the mounted airflow.cfg
 #
