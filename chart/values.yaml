@@ -1675,7 +1675,7 @@ createUserJob:
   priorityClassName: ~
   # In case you need to disable the helm hooks that create the jobs after install.
   # Disable this if you are using ArgoCD for example
-  useHelmHooks: true
+  useHelmHooks: false
   applyCustomEnv: true
 
   env: []
@@ -1787,7 +1787,7 @@ migrateDatabaseJob:
   priorityClassName: ~
   # In case you need to disable the helm hooks that create the jobs after install.
   # Disable this if you are using ArgoCD for example
-  useHelmHooks: true
+  useHelmHooks: false
   applyCustomEnv: true
   env: []
 
