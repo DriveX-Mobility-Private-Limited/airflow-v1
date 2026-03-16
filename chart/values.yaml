@@ -3560,7 +3560,9 @@ postgresql:
     password: ""
   primary:
     persistence:
+      enabled: true
       storageClass: "gp2"
+      size: 50Gi
     nodeSelector:
       if-data-warehouse-pod: "true"
     tolerations:
