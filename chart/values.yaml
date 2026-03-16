@@ -159,10 +159,11 @@ ingress:
   # Configs for the Ingress of the API Server (Airflow 3+)
   apiServer:
     # Enable API Server ingress resource
-    enabled: false
+    enabled: true
 
     # Annotations for the API Server Ingress
-    annotations: {}
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-dev"
 
     # The path for the API Server Ingress
     path: "/"
@@ -174,18 +175,14 @@ ingress:
     host: ""
 
     # The hostnames or hosts configuration for the API Server Ingress
-    hosts: []
-    #   # The hostname for the web Ingress (templated)
-    # - name: ""
-    #   # configs for API Server Ingress TLS
-    #   tls:
-    #     # Enable TLS termination for the API Server Ingress
-    #     enabled: false
-    #     # the name of a pre-created Secret containing a TLS private key and certificate
-    #     secretName: ""
+    hosts:
+      - name: "airflow.drivex.dev"
+        tls:
+          enabled: true
+          secretName: "airflow-tls-cert"
 
     # The Ingress Class for the API Server Ingress (used only with Kubernetes v1.19 and above)
-    ingressClassName: ""
+    ingressClassName: "nginx"
 
     # configs for API Server Ingress TLS (Deprecated - renamed to `ingress.apiServer.hosts[*].tls`)
     tls:
