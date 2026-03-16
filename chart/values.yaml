@@ -128,9 +128,13 @@ images:
     pullPolicy: IfNotPresent
 
 # Select certain nodes for airflow pods.
-nodeSelector: {}
+nodeSelector:
+  if-data-warehouse-pod: "true"
 affinity: {}
-tolerations: []
+tolerations:
+  - key: "if-monitoring-pod"
+    operator: "Equal"
+    value: "true"
 topologySpreadConstraints: []
 schedulerName: ~
 
@@ -835,7 +839,7 @@ workers:
 
     # If using a custom storageClass, pass name ref to all StatefulSets here
     # (deprecated, use `workers.celery.persistence.storageClassName` instead)
-    storageClassName:
+    storageClassName: "gp2"
 
     # Execute init container to chown log directory.
     # This is currently only needed in kind, due to usage
@@ -945,7 +949,8 @@ workers:
   extraPorts: []
 
   # Select certain nodes for Airflow Celery worker pods and pods created with pod-template-file
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   runtimeClassName: ~
   priorityClassName: ~
   affinity: {}
@@ -958,7 +963,10 @@ workers:
   #            component: worker
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
-  tolerations: []
+  tolerations:
+    - key: "if-monitoring-pod"
+      operator: "Equal"
+      value: "true"
   topologySpreadConstraints: []
   # hostAliases to use in Airflow Celery worker pods and pods created with pod-template-file
   # See:
@@ -1197,7 +1205,7 @@ workers:
       size: ~
 
       # If using a custom storageClass, pass name ref to all StatefulSets here
-      storageClassName:
+      storageClassName: "gp2"
 
       # Execute init container to chown log directory.
       # This is currently only needed in kind, due to usage
@@ -1463,7 +1471,8 @@ scheduler:
   extraVolumeMounts: []
 
   # Select certain nodes for airflow scheduler pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
   # default scheduler affinity is:
   #  podAntiAffinity:
@@ -1474,7 +1483,10 @@ scheduler:
   #            component: scheduler
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
-  tolerations: []
+  tolerations:
+    - key: "if-monitoring-pod"
+      operator: "Equal"
+      value: "true"
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -1870,9 +1882,13 @@ apiServer:
   extraVolumeMounts: []
 
   # Select certain nodes for Airflow API server pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: "if-monitoring-pod"
+      operator: "Equal"
+      value: "true"
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -2150,7 +2166,8 @@ webserver:
     loadBalancerSourceRanges: []
 
   # Select certain nodes for airflow webserver pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   priorityClassName: ~
   affinity: {}
   # default webserver affinity is:
@@ -2162,7 +2179,10 @@ webserver:
   #            component: webserver
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
-  tolerations: []
+  tolerations:
+    - key: "if-monitoring-pod"
+      operator: "Equal"
+      value: "true"
   topologySpreadConstraints: []
 
   # annotations for webserver deployment
@@ -2250,7 +2270,7 @@ triggerer:
     # Volume size for triggerer StatefulSet
     size: 100Gi
     # If using a custom storageClass, pass name ref to all statefulSets here
-    storageClassName:
+    storageClassName: "gp2"
     # Execute init container to chown log directory.
     # This is currently only needed in kind, due to usage
     # of local-path provisioner.
@@ -2304,7 +2324,8 @@ triggerer:
   extraVolumeMounts: []
 
   # Select certain nodes for airflow triggerer pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
   # default triggerer affinity is:
   #  podAntiAffinity:
@@ -2315,7 +2336,10 @@ triggerer:
   #            component: triggerer
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
-  tolerations: []
+  tolerations:
+    - key: "if-monitoring-pod"
+      operator: "Equal"
+      value: "true"
   topologySpreadConstraints: []
 
   #  hostAliases for the triggerer pod
@@ -2553,7 +2577,8 @@ dagProcessor:
   extraVolumeMounts: []
 
   # Select certain nodes for airflow dag processor pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
   # default dag processor affinity is:
   #  podAntiAffinity:
@@ -2564,7 +2589,10 @@ dagProcessor:
   #            component: dag-processor
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
-  tolerations: []
+  tolerations:
+    - key: "if-monitoring-pod"
+      operator: "Equal"
+      value: "true"
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -2753,9 +2781,13 @@ flower:
   extraVolumeMounts: []
 
   # Select certain nodes for airflow flower pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: "if-monitoring-pod"
+      operator: "Equal"
+      value: "true"
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -2864,9 +2896,13 @@ statsd:
     extraAnnotations: {}
 
   # Select certain nodes for StatsD pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: "if-monitoring-pod"
+      operator: "Equal"
+      value: "true"
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -3029,9 +3065,13 @@ pgbouncer:
   extraContainers: []
 
   # Select certain nodes for PgBouncer pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: "if-monitoring-pod"
+      operator: "Equal"
+      value: "true"
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -3145,7 +3185,7 @@ redis:
     # Volume size for worker StatefulSet
     size: 1Gi
     # If using a custom storageClass, pass name ref to all statefulSets here
-    storageClassName:
+    storageClassName: "gp2"
     # Annotations to add to redis volumes
     annotations: {}
     # the name of an existing PVC to use
@@ -3185,9 +3225,13 @@ redis:
   safeToEvict: true
 
   # Select certain nodes for redis pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: "if-monitoring-pod"
+      operator: "Equal"
+      value: "true"
   topologySpreadConstraints: []
   priorityClassName: ~
 
@@ -3302,9 +3346,13 @@ cleanup:
   jobAnnotations: {}
 
   # Select certain nodes for airflow cleanup pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: "if-monitoring-pod"
+      operator: "Equal"
+      value: "true"
   topologySpreadConstraints: []
   priorityClassName: ~
 
@@ -3392,9 +3440,13 @@ databaseCleanup:
   jobAnnotations: {}
 
   # Select certain nodes for airflow database cleanup pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: "if-monitoring-pod"
+      operator: "Equal"
+      value: "true"
   topologySpreadConstraints: []
   priorityClassName: ~
 
@@ -3562,7 +3614,7 @@ dags:
     # Volume size for dags
     size: 1Gi
     # If using a custom storageClass, pass name here
-    storageClassName:
+    storageClassName: "gp2"
     # access mode of the persistent volume
     accessMode: ReadWriteOnce
     ## the name of an existing PVC to use
@@ -3726,7 +3778,7 @@ logs:
     # Annotations for the logs PVC
     annotations: {}
     # If using a custom storageClass, pass name here
-    storageClassName:
+    storageClassName: "gp2"
     ## the name of an existing PVC to use
     existingClaim:
     ## the subpath of the existing PVC to use
