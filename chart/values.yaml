@@ -139,6 +139,7 @@ tolerations:
     operator: Equal
     value: 'true'
   - effect: NoExecute
+    operator: Exists
 topologySpreadConstraints: []
 schedulerName: ~
 
@@ -975,6 +976,7 @@ workers:
       operator: Equal
       value: 'true'
     - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
   # hostAliases to use in Airflow Celery worker pods and pods created with pod-template-file
   # See:
@@ -1499,6 +1501,7 @@ scheduler:
       operator: Equal
       value: 'true'
     - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -1905,6 +1908,7 @@ apiServer:
       operator: Equal
       value: 'true'
     - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -2203,6 +2207,7 @@ webserver:
       operator: Equal
       value: 'true'
     - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   # annotations for webserver deployment
@@ -2364,6 +2369,7 @@ triggerer:
       operator: Equal
       value: 'true'
     - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   #  hostAliases for the triggerer pod
@@ -2621,6 +2627,7 @@ dagProcessor:
       operator: Equal
       value: 'true'
     - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -2820,6 +2827,7 @@ flower:
       operator: Equal
       value: 'true'
     - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -2939,6 +2947,7 @@ statsd:
       operator: Equal
       value: 'true'
     - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -3112,6 +3121,7 @@ pgbouncer:
       operator: Equal
       value: 'true'
     - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -3276,6 +3286,7 @@ redis:
       operator: Equal
       value: 'true'
     - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
   priorityClassName: ~
 
@@ -3401,6 +3412,7 @@ cleanup:
       operator: Equal
       value: 'true'
     - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
   priorityClassName: ~
 
@@ -3499,6 +3511,7 @@ databaseCleanup:
       operator: Equal
       value: 'true'
     - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
   priorityClassName: ~
 
@@ -3573,6 +3586,7 @@ postgresql:
         operator: Equal
         value: 'true'
       - effect: NoExecute
+        operator: Exists
 
 # Config settings to go into the mounted airflow.cfg
 #
