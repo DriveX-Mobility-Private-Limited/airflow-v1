@@ -132,6 +132,9 @@ nodeSelector:
   if-data-warehouse-pod: "true"
 affinity: {}
 tolerations:
+  - key: if-monitoring-pod
+    operator: Equal
+    value: 'true'
   - key: if-data-warehouse-pod
     operator: Equal
     value: 'true'
@@ -965,6 +968,9 @@ workers:
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
   tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
     - key: if-data-warehouse-pod
       operator: Equal
       value: 'true'
@@ -1486,6 +1492,9 @@ scheduler:
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
   tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
     - key: if-data-warehouse-pod
       operator: Equal
       value: 'true'
@@ -1889,6 +1898,9 @@ apiServer:
     if-data-warehouse-pod: "true"
   affinity: {}
   tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
     - key: if-data-warehouse-pod
       operator: Equal
       value: 'true'
@@ -2184,6 +2196,9 @@ webserver:
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
   tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
     - key: if-data-warehouse-pod
       operator: Equal
       value: 'true'
@@ -2342,6 +2357,9 @@ triggerer:
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
   tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
     - key: if-data-warehouse-pod
       operator: Equal
       value: 'true'
@@ -2596,6 +2614,9 @@ dagProcessor:
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
   tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
     - key: if-data-warehouse-pod
       operator: Equal
       value: 'true'
@@ -2792,6 +2813,9 @@ flower:
     if-data-warehouse-pod: "true"
   affinity: {}
   tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
     - key: if-data-warehouse-pod
       operator: Equal
       value: 'true'
@@ -2908,6 +2932,9 @@ statsd:
     if-data-warehouse-pod: "true"
   affinity: {}
   tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
     - key: if-data-warehouse-pod
       operator: Equal
       value: 'true'
@@ -3078,6 +3105,9 @@ pgbouncer:
     if-data-warehouse-pod: "true"
   affinity: {}
   tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
     - key: if-data-warehouse-pod
       operator: Equal
       value: 'true'
@@ -3239,6 +3269,9 @@ redis:
     if-data-warehouse-pod: "true"
   affinity: {}
   tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
     - key: if-data-warehouse-pod
       operator: Equal
       value: 'true'
@@ -3361,6 +3394,9 @@ cleanup:
     if-data-warehouse-pod: "true"
   affinity: {}
   tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
     - key: if-data-warehouse-pod
       operator: Equal
       value: 'true'
@@ -3456,6 +3492,9 @@ databaseCleanup:
     if-data-warehouse-pod: "true"
   affinity: {}
   tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
     - key: if-data-warehouse-pod
       operator: Equal
       value: 'true'
@@ -3525,6 +3564,9 @@ postgresql:
     nodeSelector:
       if-data-warehouse-pod: "true"
     tolerations:
+      - key: if-monitoring-pod
+        operator: Equal
+        value: 'true'
       - key: if-data-warehouse-pod
         operator: Equal
         value: 'true'
