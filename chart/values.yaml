@@ -1659,9 +1659,18 @@ createUserJob:
   extraVolumes: []
   extraVolumeMounts: []
 
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
   priorityClassName: ~
   # In case you need to disable the helm hooks that create the jobs after install.
@@ -1762,9 +1771,18 @@ migrateDatabaseJob:
   extraVolumes: []
   extraVolumeMounts: []
 
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
   priorityClassName: ~
   # In case you need to disable the helm hooks that create the jobs after install.
