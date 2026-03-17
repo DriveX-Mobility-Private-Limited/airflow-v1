@@ -3723,11 +3723,11 @@ dags:
     # git repo clone url
     # ssh example: git@github.com:apache/airflow.git
     # https example: https://github.com/apache/airflow.git
-    repo: https://github.com/DriveX-Mobility-Private-Limited/airflow.git
-    branch: dev
+    repo: https://github.com/DriveX-Mobility-Private-Limited/airflow-v1.git
+    branch: Dev
     rev: HEAD
     # The git revision (branch, tag, or hash) to check out, v4 only
-    ref: dev
+    ref: Dev
     depth: 1
     # the number of consecutive failures allowed before aborting
     maxFailures: 0
