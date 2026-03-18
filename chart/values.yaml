@@ -502,7 +502,9 @@ extraEnv: |
 
 # Extra envFrom 'items' that will be added to the definition of airflow containers
 # A string is expected (templated).
-extraEnvFrom: ~
+extraEnvFrom: |
+  - secretRef:
+      name: airflow-aws-credentials
 # eg:
 # extraEnvFrom: |
 #   - secretRef:
