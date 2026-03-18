@@ -486,7 +486,9 @@ extraConfigMaps: {}
 # Extra env 'items' that will be added to the definition of airflow containers
 # a string is expected (templated).
 # TODO: difference from `env`? This is a templated string. Probably should template `env` and remove this.
-extraEnv: ~
+extraEnv: |
+  - name: _PIP_ADDITIONAL_REQUIREMENTS
+    value: "apache-airflow-providers-airbyte"
 # eg:
 # extraEnv: |
 #   - name: AIRFLOW__CORE__LOAD_EXAMPLES
