@@ -495,6 +495,8 @@ extraEnv: |
     value: "s3://datalake-central-hub/airflow/logs"
   - name: AIRFLOW__LOGGING__REMOTE_LOG_CONN_ID
     value: "aws_default"
+  - name: AIRFLOW__CORE__TEST_CONNECTION
+    value: "Enabled"
 # eg:
 # extraEnv: |
 #   - name: AIRFLOW__CORE__LOAD_EXAMPLES
