@@ -1,10 +1,10 @@
 from airflow.sdk import dag
 from airflow.providers.standard.operators.python import PythonOperator
 from airflow.providers.airbyte.hooks.airbyte import AirbyteHook
+from airbyte_api.models import ListJobsRequest, JobTypeEnum
 from datetime import timedelta
 import pendulum
 import logging
-import json
 
 log = logging.getLogger(__name__)
 
@@ -24,25 +24,21 @@ CONNECTOR_IDS = [
 
 def check_connector_sync_status(connector_name: str, connection_id: str, **_context) -> dict:
     """
-    Checks the latest sync job status for an Airbyte connection via the REST API.
+    Checks the latest sync job status for an Airbyte connection via the SDK.
     Does NOT trigger a new sync — read-only status check only.
     """
-    # Use AirbyteHook (carries connection auth). Endpoint is relative to the
-    # base URL in the Airflow connection (e.g. https://host/api/public/v1)
     hook = AirbyteHook(airbyte_conn_id=AIRBYTE_CONN_ID)
 
-    response = hook.run(
-        endpoint="jobs/list",
-        data=json.dumps({
-            "configTypes": ["sync"],
-            "configId": connection_id,
-            "pagination": {"pageSize": 1, "rowOffset": 0},
-        }),
-        headers={"Content-Type": "application/json"},
+    response = hook.airbyte_api.jobs.list_jobs(
+        request=ListJobsRequest(
+            connection_id=connection_id,
+            job_type=JobTypeEnum.SYNC,
+            limit=1,
+            offset=0,
+        )
     )
 
-    data = response.json()
-    jobs = data.get("jobs", [])
+    jobs = getattr(response.jobs_response, "data", None) or []
 
     if not jobs:
         log.warning("[%s] No sync jobs found for connection_id=%s", connector_name, connection_id)
@@ -50,21 +46,21 @@ def check_connector_sync_status(connector_name: str, connection_id: str, **_cont
         log.info("[%s] Result: %s", connector_name, result)
         return result
 
-    latest_job = jobs[0].get("job", jobs[0])
-    status     = latest_job.get("status", "UNKNOWN")
-    job_id     = latest_job.get("id", "UNKNOWN")
-    created_at = latest_job.get("createdAt", "UNKNOWN")
+    latest = jobs[0]
+    status     = str(latest.status)
+    job_id     = latest.job_id
+    start_time = latest.start_time
 
     result = {
         "connector":     connector_name,
         "connection_id": connection_id,
         "job_id":        job_id,
         "status":        status,
-        "created_at":    created_at,
+        "start_time":    start_time,
     }
 
-    log.info("[%s] connection_id=%s  job_id=%s  status=%s  created_at=%s",
-             connector_name, connection_id, job_id, status, created_at)
+    log.info("[%s] connection_id=%s  job_id=%s  status=%s  start_time=%s",
+             connector_name, connection_id, job_id, status, start_time)
     return result
 
 

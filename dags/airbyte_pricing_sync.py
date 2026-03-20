@@ -20,31 +20,24 @@ def print_sync_result(**context):
     log.info("=== C_4_Pricing Sync Result ===")
     log.info("Job ID: %s", job_id)
 
-    # Use AirbyteHook (carries connection auth) — endpoint is relative to the
-    # base URL already stored in the Airflow connection (e.g. https://host/api/public/v1)
+    # get_job_details uses airbyte_api SDK internally — no raw HTTP needed
     hook = AirbyteHook(airbyte_conn_id=AIRBYTE_CONN_ID)
-    response = hook.run(endpoint=f"jobs/{job_id}")
-    job_details = response.json()
+    job = hook.get_job_details(int(job_id))  # returns JobResponse object
 
-    status     = job_details.get("job", {}).get("status", "UNKNOWN")
-    created_at = job_details.get("job", {}).get("createdAt", "UNKNOWN")
-    updated_at = job_details.get("job", {}).get("updatedAt", "UNKNOWN")
-    duration   = job_details.get("job", {}).get("duration", "UNKNOWN")
+    log.info("Status       : %s", job.status)
+    log.info("Connection ID: %s", job.connection_id)
+    log.info("Start time   : %s", job.start_time)
+    log.info("Job type     : %s", job.job_type)
+    log.info("Full response: %s", job)
 
-    log.info("Status     : %s", status)
-    log.info("Created at : %s", created_at)
-    log.info("Updated at : %s", updated_at)
-    log.info("Duration   : %s", duration)
-    log.info("Full response: %s", job_details)
+    print(f"Job ID       : {job_id}")
+    print(f"Status       : {job.status}")
+    print(f"Connection ID: {job.connection_id}")
+    print(f"Start time   : {job.start_time}")
+    print(f"Job type     : {job.job_type}")
+    print(f"Full resp    : {job}")
 
-    print(f"Job ID      : {job_id}")
-    print(f"Status      : {status}")
-    print(f"Created at  : {created_at}")
-    print(f"Updated at  : {updated_at}")
-    print(f"Duration    : {duration}")
-    print(f"Full resp   : {job_details}")
-
-    return {"job_id": job_id, "status": status, "details": job_details}
+    return {"job_id": job_id, "status": str(job.status), "details": str(job)}
 
 
 @dag(
