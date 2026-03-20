@@ -1,7 +1,8 @@
-from airflow.decorators import dag
+from airflow.sdk import dag
 from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperator
 from airflow.providers.airbyte.sensors.airbyte import AirbyteJobSensor
-from airflow.operators.python import PythonOperator
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.http.hooks.http import HttpHook
 from datetime import timedelta
 import pendulum
 import logging
@@ -15,13 +16,34 @@ C4_PRICING_CONNECTION_ID = "9c7e1f5f-7dd8-4ac3-94a3-89eb290d7d30"
 def print_sync_result(**context):
     ti = context["ti"]
     job_id = ti.xcom_pull(task_ids="trigger_c4_pricing_sync")
-    sensor_result = ti.xcom_pull(task_ids="wait_for_c4_pricing_sync")
 
     log.info("=== C_4_Pricing Sync Result ===")
-    log.info("Job ID      : %s", job_id)
-    log.info("Sensor resp : %s", sensor_result)
-    print(f"Job ID       : {job_id}")
-    print(f"Sensor resp  : {sensor_result}")
+    log.info("Job ID: %s", job_id)
+
+    # Fetch full job details from Airbyte REST API (sensor doesn't push XCom)
+    hook = HttpHook(http_conn_id=AIRBYTE_CONN_ID, method="GET")
+    response = hook.run(endpoint=f"api/v1/jobs/{job_id}")
+    job_details = response.json()
+
+    status     = job_details.get("job", {}).get("status", "UNKNOWN")
+    created_at = job_details.get("job", {}).get("createdAt", "UNKNOWN")
+    updated_at = job_details.get("job", {}).get("updatedAt", "UNKNOWN")
+    duration   = job_details.get("job", {}).get("duration", "UNKNOWN")
+
+    log.info("Status     : %s", status)
+    log.info("Created at : %s", created_at)
+    log.info("Updated at : %s", updated_at)
+    log.info("Duration   : %s", duration)
+    log.info("Full response: %s", job_details)
+
+    print(f"Job ID      : {job_id}")
+    print(f"Status      : {status}")
+    print(f"Created at  : {created_at}")
+    print(f"Updated at  : {updated_at}")
+    print(f"Duration    : {duration}")
+    print(f"Full resp   : {job_details}")
+
+    return {"job_id": job_id, "status": status, "details": job_details}
 
 
 @dag(
@@ -34,7 +56,7 @@ def print_sync_result(**context):
 def airbyte_c4_pricing_trigger_sync():
     """
     Triggers a sync for the C_4_Pricing Airbyte connector,
-    waits for completion, then prints the job ID and response.
+    waits for completion, then fetches and prints full job details.
     """
 
     trigger = AirbyteTriggerSyncOperator(
