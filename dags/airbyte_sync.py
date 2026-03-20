@@ -1,7 +1,8 @@
 from airflow.sdk import dag
 from airflow.providers.standard.operators.python import PythonOperator
 from airflow.providers.airbyte.hooks.airbyte import AirbyteHook
-from airbyte_api.models import ListJobsRequest, JobTypeEnum
+from airbyte_api.api import ListJobsRequest
+from airbyte_api.models import JobTypeEnum
 from datetime import timedelta
 import pendulum
 import logging
