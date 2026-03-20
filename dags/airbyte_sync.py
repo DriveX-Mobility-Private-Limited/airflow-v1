@@ -1,6 +1,6 @@
 from airflow.sdk import dag
 from airflow.providers.standard.operators.python import PythonOperator
-from airflow.providers.http.hooks.http import HttpHook
+from airflow.providers.airbyte.hooks.airbyte import AirbyteHook
 from datetime import timedelta
 import pendulum
 import logging
@@ -27,10 +27,12 @@ def check_connector_sync_status(connector_name: str, connection_id: str, **_cont
     Checks the latest sync job status for an Airbyte connection via the REST API.
     Does NOT trigger a new sync — read-only status check only.
     """
-    hook = HttpHook(http_conn_id=AIRBYTE_CONN_ID, method="POST")
+    # Use AirbyteHook (carries connection auth). Endpoint is relative to the
+    # base URL in the Airflow connection (e.g. https://host/api/public/v1)
+    hook = AirbyteHook(airbyte_conn_id=AIRBYTE_CONN_ID)
 
     response = hook.run(
-        endpoint="api/v1/jobs/list",
+        endpoint="jobs/list",
         data=json.dumps({
             "configTypes": ["sync"],
             "configId": connection_id,

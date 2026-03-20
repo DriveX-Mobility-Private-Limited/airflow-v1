@@ -2,7 +2,7 @@ from airflow.sdk import dag
 from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperator
 from airflow.providers.airbyte.sensors.airbyte import AirbyteJobSensor
 from airflow.providers.standard.operators.python import PythonOperator
-from airflow.providers.http.hooks.http import HttpHook
+from airflow.providers.airbyte.hooks.airbyte import AirbyteHook
 from datetime import timedelta
 import pendulum
 import logging
@@ -20,9 +20,10 @@ def print_sync_result(**context):
     log.info("=== C_4_Pricing Sync Result ===")
     log.info("Job ID: %s", job_id)
 
-    # Fetch full job details from Airbyte REST API (sensor doesn't push XCom)
-    hook = HttpHook(http_conn_id=AIRBYTE_CONN_ID, method="GET")
-    response = hook.run(endpoint=f"api/v1/jobs/{job_id}")
+    # Use AirbyteHook (carries connection auth) — endpoint is relative to the
+    # base URL already stored in the Airflow connection (e.g. https://host/api/public/v1)
+    hook = AirbyteHook(airbyte_conn_id=AIRBYTE_CONN_ID)
+    response = hook.run(endpoint=f"jobs/{job_id}")
     job_details = response.json()
 
     status     = job_details.get("job", {}).get("status", "UNKNOWN")
