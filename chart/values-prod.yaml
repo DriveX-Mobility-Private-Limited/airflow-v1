@@ -1,0 +1,53 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+# Production values for Airflow Helm Chart
+# Usage: helm upgrade --install airflow . -f values.yaml -f values-prod.yaml
+---
+
+# Ingress configuration for production
+ingress:
+  apiServer:
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    hosts:
+      - name: "airflow.drivex.in"
+        tls:
+          enabled: true
+          secretName: "airflow-prod-tls-cert"
+
+# Production S3 logging path
+extraEnv: |
+  - name: _PIP_ADDITIONAL_REQUIREMENTS
+    value: "apache-airflow-providers-airbyte apache-airflow-providers-amazon"
+  - name: AIRFLOW__LOGGING__REMOTE_LOGGING
+    value: "True"
+  - name: AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER
+    value: "s3://datalake-central-hub/airflow/prod/logs"
+  - name: AIRFLOW__LOGGING__REMOTE_LOG_CONN_ID
+    value: "aws_default"
+  - name: AIRFLOW__CORE__TEST_CONNECTION
+    value: "Enabled"
+
+# Git sync pointing to main branch for production
+dags:
+  gitSync:
+    enabled: true
+    repo: https://github.com/DriveX-Mobility-Private-Limited/airflow-v1.git
+    branch: main
+    ref: main
+    subPath: "dags"
