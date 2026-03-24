@@ -78,7 +78,7 @@ triggerer:
 redis:
   persistence:
     enabled: true
-    size: 10Gi
+    size: 30Gi
     storageClassName: "gp2"
 
 # Logs persistence (disabled - using S3 remote logging)
