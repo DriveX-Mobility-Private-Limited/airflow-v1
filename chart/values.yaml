@@ -128,9 +128,18 @@ images:
     pullPolicy: IfNotPresent
 
 # Select certain nodes for airflow pods.
-nodeSelector: {}
+nodeSelector:
+  if-data-warehouse-pod: "true"
 affinity: {}
-tolerations: []
+tolerations:
+  - key: if-monitoring-pod
+    operator: Equal
+    value: 'true'
+  - key: if-data-warehouse-pod
+    operator: Equal
+    value: 'true'
+  - effect: NoExecute
+    operator: Exists
 topologySpreadConstraints: []
 schedulerName: ~
 
@@ -150,10 +159,11 @@ ingress:
   # Configs for the Ingress of the API Server (Airflow 3+)
   apiServer:
     # Enable API Server ingress resource
-    enabled: false
+    enabled: true
 
     # Annotations for the API Server Ingress
-    annotations: {}
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-dev"
 
     # The path for the API Server Ingress
     path: "/"
@@ -165,18 +175,14 @@ ingress:
     host: ""
 
     # The hostnames or hosts configuration for the API Server Ingress
-    hosts: []
-    #   # The hostname for the web Ingress (templated)
-    # - name: ""
-    #   # configs for API Server Ingress TLS
-    #   tls:
-    #     # Enable TLS termination for the API Server Ingress
-    #     enabled: false
-    #     # the name of a pre-created Secret containing a TLS private key and certificate
-    #     secretName: ""
+    hosts:
+      - name: "airflow.drivex.dev"
+        tls:
+          enabled: true
+          secretName: "airflow-tls-cert"
 
     # The Ingress Class for the API Server Ingress (used only with Kubernetes v1.19 and above)
-    ingressClassName: ""
+    ingressClassName: "nginx"
 
     # configs for API Server Ingress TLS (Deprecated - renamed to `ingress.apiServer.hosts[*].tls`)
     tls:
@@ -480,7 +486,17 @@ extraConfigMaps: {}
 # Extra env 'items' that will be added to the definition of airflow containers
 # a string is expected (templated).
 # TODO: difference from `env`? This is a templated string. Probably should template `env` and remove this.
-extraEnv: ~
+extraEnv: |
+  - name: _PIP_ADDITIONAL_REQUIREMENTS
+    value: "apache-airflow-providers-airbyte apache-airflow-providers-amazon"
+  - name: AIRFLOW__LOGGING__REMOTE_LOGGING
+    value: "True"
+  - name: AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER
+    value: "s3://datalake-central-hub/airflow/logs"
+  - name: AIRFLOW__LOGGING__REMOTE_LOG_CONN_ID
+    value: "aws_default"
+  - name: AIRFLOW__CORE__TEST_CONNECTION
+    value: "Enabled"
 # eg:
 # extraEnv: |
 #   - name: AIRFLOW__CORE__LOAD_EXAMPLES
@@ -488,7 +504,9 @@ extraEnv: ~
 
 # Extra envFrom 'items' that will be added to the definition of airflow containers
 # A string is expected (templated).
-extraEnvFrom: ~
+extraEnvFrom: |
+  - secretRef:
+      name: airflow-aws-credentials
 # eg:
 # extraEnvFrom: |
 #   - secretRef:
@@ -835,7 +853,7 @@ workers:
 
     # If using a custom storageClass, pass name ref to all StatefulSets here
     # (deprecated, use `workers.celery.persistence.storageClassName` instead)
-    storageClassName:
+    storageClassName: "gp2"
 
     # Execute init container to chown log directory.
     # This is currently only needed in kind, due to usage
@@ -945,7 +963,8 @@ workers:
   extraPorts: []
 
   # Select certain nodes for Airflow Celery worker pods and pods created with pod-template-file
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   runtimeClassName: ~
   priorityClassName: ~
   affinity: {}
@@ -958,7 +977,15 @@ workers:
   #            component: worker
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
   # hostAliases to use in Airflow Celery worker pods and pods created with pod-template-file
   # See:
@@ -1197,7 +1224,7 @@ workers:
       size: ~
 
       # If using a custom storageClass, pass name ref to all StatefulSets here
-      storageClassName:
+      storageClassName: "gp2"
 
       # Execute init container to chown log directory.
       # This is currently only needed in kind, due to usage
@@ -1463,7 +1490,8 @@ scheduler:
   extraVolumeMounts: []
 
   # Select certain nodes for airflow scheduler pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
   # default scheduler affinity is:
   #  podAntiAffinity:
@@ -1474,7 +1502,15 @@ scheduler:
   #            component: scheduler
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -1632,14 +1668,23 @@ createUserJob:
   extraVolumes: []
   extraVolumeMounts: []
 
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
   priorityClassName: ~
   # In case you need to disable the helm hooks that create the jobs after install.
   # Disable this if you are using ArgoCD for example
-  useHelmHooks: true
+  useHelmHooks: false
   applyCustomEnv: true
 
   env: []
@@ -1735,14 +1780,23 @@ migrateDatabaseJob:
   extraVolumes: []
   extraVolumeMounts: []
 
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
   priorityClassName: ~
   # In case you need to disable the helm hooks that create the jobs after install.
   # Disable this if you are using ArgoCD for example
-  useHelmHooks: true
+  useHelmHooks: false
   applyCustomEnv: true
   env: []
 
@@ -1870,9 +1924,18 @@ apiServer:
   extraVolumeMounts: []
 
   # Select certain nodes for Airflow API server pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -2150,7 +2213,8 @@ webserver:
     loadBalancerSourceRanges: []
 
   # Select certain nodes for airflow webserver pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   priorityClassName: ~
   affinity: {}
   # default webserver affinity is:
@@ -2162,7 +2226,15 @@ webserver:
   #            component: webserver
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   # annotations for webserver deployment
@@ -2250,7 +2322,7 @@ triggerer:
     # Volume size for triggerer StatefulSet
     size: 100Gi
     # If using a custom storageClass, pass name ref to all statefulSets here
-    storageClassName:
+    storageClassName: "gp2"
     # Execute init container to chown log directory.
     # This is currently only needed in kind, due to usage
     # of local-path provisioner.
@@ -2304,7 +2376,8 @@ triggerer:
   extraVolumeMounts: []
 
   # Select certain nodes for airflow triggerer pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
   # default triggerer affinity is:
   #  podAntiAffinity:
@@ -2315,7 +2388,15 @@ triggerer:
   #            component: triggerer
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   #  hostAliases for the triggerer pod
@@ -2553,7 +2634,8 @@ dagProcessor:
   extraVolumeMounts: []
 
   # Select certain nodes for airflow dag processor pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
   # default dag processor affinity is:
   #  podAntiAffinity:
@@ -2564,7 +2646,15 @@ dagProcessor:
   #            component: dag-processor
   #        topologyKey: kubernetes.io/hostname
   #      weight: 100
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -2753,9 +2843,18 @@ flower:
   extraVolumeMounts: []
 
   # Select certain nodes for airflow flower pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -2864,9 +2963,18 @@ statsd:
     extraAnnotations: {}
 
   # Select certain nodes for StatsD pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -3029,9 +3137,18 @@ pgbouncer:
   extraContainers: []
 
   # Select certain nodes for PgBouncer pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
 
   priorityClassName: ~
@@ -3145,7 +3262,7 @@ redis:
     # Volume size for worker StatefulSet
     size: 1Gi
     # If using a custom storageClass, pass name ref to all statefulSets here
-    storageClassName:
+    storageClassName: "gp2"
     # Annotations to add to redis volumes
     annotations: {}
     # the name of an existing PVC to use
@@ -3185,9 +3302,18 @@ redis:
   safeToEvict: true
 
   # Select certain nodes for redis pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
   priorityClassName: ~
 
@@ -3302,9 +3428,18 @@ cleanup:
   jobAnnotations: {}
 
   # Select certain nodes for airflow cleanup pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
   priorityClassName: ~
 
@@ -3392,9 +3527,18 @@ databaseCleanup:
   jobAnnotations: {}
 
   # Select certain nodes for airflow database cleanup pods.
-  nodeSelector: {}
+  nodeSelector:
+    if-data-warehouse-pod: "true"
   affinity: {}
-  tolerations: []
+  tolerations:
+    - key: if-monitoring-pod
+      operator: Equal
+      value: 'true'
+    - key: if-data-warehouse-pod
+      operator: Equal
+      value: 'true'
+    - effect: NoExecute
+      operator: Exists
   topologySpreadConstraints: []
   priorityClassName: ~
 
@@ -3454,6 +3598,22 @@ postgresql:
     postgresPassword: postgres
     username: ""
     password: ""
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "gp2"
+      size: 50Gi
+    nodeSelector:
+      if-data-warehouse-pod: "true"
+    tolerations:
+      - key: if-monitoring-pod
+        operator: Equal
+        value: 'true'
+      - key: if-data-warehouse-pod
+        operator: Equal
+        value: 'true'
+      - effect: NoExecute
+        operator: Exists
 
 # Config settings to go into the mounted airflow.cfg
 #
@@ -3562,7 +3722,7 @@ dags:
     # Volume size for dags
     size: 1Gi
     # If using a custom storageClass, pass name here
-    storageClassName:
+    storageClassName: "gp2"
     # access mode of the persistent volume
     accessMode: ReadWriteOnce
     ## the name of an existing PVC to use
@@ -3570,22 +3730,22 @@ dags:
     ## optional subpath for dag volume mount
     subPath: ~
   gitSync:
-    enabled: false
+    enabled: true
 
     # git repo clone url
     # ssh example: git@github.com:apache/airflow.git
     # https example: https://github.com/apache/airflow.git
-    repo: https://github.com/apache/airflow.git
-    branch: v2-2-stable
+    repo: https://github.com/DriveX-Mobility-Private-Limited/airflow-v1.git
+    branch: Dev
     rev: HEAD
     # The git revision (branch, tag, or hash) to check out, v4 only
-    ref: v2-2-stable
+    ref: Dev
     depth: 1
     # the number of consecutive failures allowed before aborting
     maxFailures: 0
     # subpath within the repo where dags are located
     # should be "" if dags are at repo root
-    subPath: "tests/dags"
+    subPath: "dags"
     # if your repo needs a user name password
     # you can load them to a k8s secret like the one below
     #   ---
@@ -3602,7 +3762,7 @@ dags:
     #     GITSYNC_PASSWORD: <base64_encoded_git_password>
     # and specify the name of the secret below
     #
-    # credentialsSecret: git-credentials
+    credentialsSecret: git-credentials
     #
     #
     # If you are using an ssh clone url, you can load
@@ -3636,7 +3796,7 @@ dags:
     # low values cause more traffic to the remote git repository
     # Go-style duration string (e.g. "100ms" or "0.1s" = 100ms).
     # For backwards compatibility, wait will be used if it is specified.
-    period: 5s
+    period: 60s
     wait: ~
     # add variables from secret into gitSync containers, such proxy-config
     envFrom: ~
@@ -3726,7 +3886,7 @@ logs:
     # Annotations for the logs PVC
     annotations: {}
     # If using a custom storageClass, pass name here
-    storageClassName:
+    storageClassName: "gp2"
     ## the name of an existing PVC to use
     existingClaim:
     ## the subpath of the existing PVC to use
