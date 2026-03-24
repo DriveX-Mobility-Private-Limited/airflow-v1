@@ -32,8 +32,8 @@ from kubernetes.stream import stream
 log = logging.getLogger(__name__)
 
 KUBE_CONN_ID = "kubernetes_default"
-DBT_POD_NAME = "dbt-pod"
-DBT_NAMESPACE = "default"
+DBT_POD_NAME = "atlas-prod-5c44c4f5df-2xjbh"
+DBT_NAMESPACE = "atlas"
 DBT_PROJECT_DIR = "/atlas"
 
 
