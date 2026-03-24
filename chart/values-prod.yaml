@@ -59,14 +59,14 @@ dags:
 workers:
   persistence:
     enabled: true
-    size: 100Gi
+    size: 50Gi
     storageClassName: "gp2"
 
 # Triggerer persistence
 triggerer:
   persistence:
     enabled: true
-    size: 100Gi
+    size: 50Gi
     storageClassName: "gp2"
 
 # Logs persistence (disabled - using S3 remote logging)
