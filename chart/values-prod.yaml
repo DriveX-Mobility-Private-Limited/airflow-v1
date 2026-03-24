@@ -45,9 +45,32 @@ extraEnv: |
 
 # Git sync pointing to main branch for production
 dags:
+  persistence:
+    enabled: false
+    storageClassName: "gp2"
   gitSync:
     enabled: true
     repo: https://github.com/DriveX-Mobility-Private-Limited/airflow-v1.git
     branch: main
     ref: main
     subPath: "dags"
+
+# Worker persistence
+workers:
+  persistence:
+    enabled: true
+    size: 100Gi
+    storageClassName: "gp2"
+
+# Triggerer persistence
+triggerer:
+  persistence:
+    enabled: true
+    size: 100Gi
+    storageClassName: "gp2"
+
+# Logs persistence (disabled - using S3 remote logging)
+logs:
+  persistence:
+    enabled: false
+    storageClassName: "gp2"
