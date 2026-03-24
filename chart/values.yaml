@@ -176,7 +176,7 @@ ingress:
 
     # The hostnames or hosts configuration for the API Server Ingress
     hosts:
-      - name: "airflow.drivex.dev"
+      - name: "airflow.drivex.in"
         tls:
           enabled: true
           secretName: "airflow-tls-cert"
