@@ -113,7 +113,7 @@ def dbt_run_after_airbyte_sync():
         external_dag_id="airbyte_check_sync_status",
         external_task_id=None,  # wait for the entire DAG (not a specific task)
         allowed_states=["success"],
-        failed_states=["failed", "upstream_failed"],
+        failed_states=["failed"],
         mode="reschedule",
         timeout=7200,       # give up after 2 h if airbyte never finishes
         poke_interval=60,   # check every minute
