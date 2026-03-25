@@ -18,13 +18,11 @@
 from __future__ import annotations
 
 import logging
-from datetime import timedelta
 
 import pendulum
 
 from airflow.providers.cncf.kubernetes.hooks.kubernetes import KubernetesHook
 from airflow.providers.standard.operators.python import PythonOperator
-from airflow.providers.standard.sensors.external_task import ExternalTaskSensor
 from airflow.sdk import dag
 from kubernetes import client as k8s_client
 from kubernetes.stream import stream
@@ -93,38 +91,21 @@ def run_dbt_in_pod(**_context) -> str:
 
 
 @dag(
-    dag_id="dbt_run_after_airbyte_sync",
-    schedule=timedelta(hours=1),
+    dag_id="atlas_warehouse_sync",
+    schedule=None,  # triggered by airbyte_check_sync_status via TriggerDagRunOperator
     start_date=pendulum.datetime(2026, 2, 1, tz="UTC"),
     catchup=False,
-    tags=["dbt", "kubernetes", "airbyte"],
+    tags=["dbt", "kubernetes", "warehouse", "atlas"],
 )
-def dbt_run_after_airbyte_sync():
+def atlas_warehouse_sync():
     """
-    Waits for the `airbyte_check_sync_status` DAG to complete successfully,
-    then execs `dbt run` inside the `dbt-pod` running in Kubernetes.
-
-    Flow:
-        wait_for_airbyte_sync  >>  run_dbt_in_pod
+    Triggered by `airbyte_check_sync_status` once all Airbyte syncs succeed.
+    Execs `dbt run` inside the atlas pod in Kubernetes to transform data in the warehouse.
     """
-
-    wait_for_airbyte = ExternalTaskSensor(
-        task_id="wait_for_airbyte_sync",
-        external_dag_id="airbyte_check_sync_status",
-        external_task_id=None,  # wait for the entire DAG (not a specific task)
-        allowed_states=["success"],
-        failed_states=["failed"],
-        mode="reschedule",
-        timeout=7200,       # give up after 2 h if airbyte never finishes
-        poke_interval=60,   # check every minute
-    )
-
-    run_dbt = PythonOperator(
+    PythonOperator(
         task_id="run_dbt_in_pod",
         python_callable=run_dbt_in_pod,
     )
 
-    wait_for_airbyte >> run_dbt
 
-
-dbt_run_after_airbyte_sync()
+atlas_warehouse_sync()
