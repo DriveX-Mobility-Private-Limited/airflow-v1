@@ -488,7 +488,7 @@ extraConfigMaps: {}
 # TODO: difference from `env`? This is a templated string. Probably should template `env` and remove this.
 extraEnv: |
   - name: _PIP_ADDITIONAL_REQUIREMENTS
-    value: "apache-airflow-providers-airbyte apache-airflow-providers-amazon"
+    value: "apache-airflow-providers-airbyte apache-airflow-providers-amazon apache-airflow-providers-cncf-kubernetes"
   - name: AIRFLOW__LOGGING__REMOTE_LOGGING
     value: "True"
   - name: AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER
