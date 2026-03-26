@@ -571,7 +571,7 @@ fernetKeySecretAnnotations: {}
 apiSecretKey: ~
 # Add custom annotations to the api secret
 apiSecretAnnotations: {}
-apiSecretKeySecretName: "airflow-api-secret"  # K8s secret with key: api-secret-key
+apiSecretKeySecretName: "airflow-api-secret-key"  # K8s secret with key: api-secret-key
 
 # Secret key used to encode and decode JWTs: `[api_auth] jwt_secret` in airflow.cfg
 jwtSecret: ~
