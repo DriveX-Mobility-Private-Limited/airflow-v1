@@ -17,77 +17,15 @@
 
 from __future__ import annotations
 
-import logging
-
 import pendulum
 
-from airflow.providers.cncf.kubernetes.hooks.kubernetes import KubernetesHook
-from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from airflow.sdk import dag
-from kubernetes import client as k8s_client
-from kubernetes.stream import stream
+from kubernetes.client import models as k8s
 
-log = logging.getLogger(__name__)
-
-KUBE_CONN_ID = "kubernetes_default"
-DBT_POD_NAME = "atlas-prod-5c44c4f5df-2xjbh"
+KUBE_CONN_ID  = "kubernetes_default"
 DBT_NAMESPACE = "atlas"
-DBT_PROJECT_DIR = "/app"
-
-
-def run_dbt_in_pod(**_context) -> str:
-    """
-    Execs `dbt run` inside the existing dbt-pod via the Kubernetes API.
-    Streams stdout/stderr to Airflow logs and raises on non-zero exit.
-    """
-    hook = KubernetesHook(conn_id=KUBE_CONN_ID)
-    api_client = hook.get_conn()
-    v1 = k8s_client.CoreV1Api(api_client=api_client)
-
-    command = ["dbt", "run", "--project-dir", DBT_PROJECT_DIR]
-    log.info("Executing in pod %s/%s: %s", DBT_NAMESPACE, DBT_POD_NAME, " ".join(command))
-
-    ws_client = stream(
-        v1.connect_get_namespaced_pod_exec,
-        name=DBT_POD_NAME,
-        namespace=DBT_NAMESPACE,
-        command=command,
-        stderr=True,
-        stdin=False,
-        stdout=True,
-        tty=False,
-        _preload_content=False,
-    )
-
-    stdout_buf: list[str] = []
-    stderr_buf: list[str] = []
-
-    while ws_client.is_open():
-        ws_client.update(timeout=1)
-        if ws_client.peek_stdout():
-            chunk = ws_client.read_stdout()
-            for line in chunk.splitlines():
-                log.info("[dbt] %s", line)
-            stdout_buf.append(chunk)
-        if ws_client.peek_stderr():
-            chunk = ws_client.read_stderr()
-            for line in chunk.splitlines():
-                log.warning("[dbt stderr] %s", line)
-            stderr_buf.append(chunk)
-
-    ws_client.close()
-
-    return_code = ws_client.returncode
-    log.info("dbt run exit code: %s", return_code)
-
-    if return_code != 0:
-        raise RuntimeError(
-            f"dbt run failed with exit code {return_code}.\n"
-            f"stderr:\n{''.join(stderr_buf)}"
-        )
-
-    log.info("dbt run completed successfully.")
-    return "".join(stdout_buf)
+DBT_IMAGE     = "drivexdocker/atlas-prod:latest"
 
 
 @dag(
@@ -100,11 +38,22 @@ def run_dbt_in_pod(**_context) -> str:
 def atlas_warehouse_sync():
     """
     Triggered by `airbyte_check_sync_status` once all Airbyte syncs succeed.
-    Execs `dbt run` inside the atlas pod in Kubernetes to transform data in the warehouse.
+    Spins up a fresh pod with the dbt image, runs `dbt run`, then tears it down.
+    Credentials are injected from the `atlas-dbt-env` Kubernetes Secret.
     """
-    PythonOperator(
-        task_id="run_dbt_in_pod",
-        python_callable=run_dbt_in_pod,
+    KubernetesPodOperator(
+        task_id="run_dbt",
+        name="atlas-dbt-run",
+        namespace=DBT_NAMESPACE,
+        image=DBT_IMAGE,
+        cmds=["dbt", "run"],
+        kubernetes_conn_id=KUBE_CONN_ID,
+        image_pull_secrets=[
+            k8s.V1LocalObjectReference(name="dockerhub-creds")
+        ],
+        is_delete_operator_pod=True,  # clean up pod after run
+        get_logs=True,
+        in_cluster=True,
     )
 
 
