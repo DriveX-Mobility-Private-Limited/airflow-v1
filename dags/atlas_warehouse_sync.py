@@ -17,16 +17,71 @@
 
 from __future__ import annotations
 
+import logging
+
 import pendulum
 
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from airflow.sdk import dag
 from kubernetes.client import models as k8s
 
+log = logging.getLogger(__name__)
+
 KUBE_CONN_ID  = "kubernetes_default"
 DBT_NAMESPACE = "data-warehouse"
 DBT_IMAGE     = "drivexdocker/atlas-dev:4-31ec062"
 
+_SEP = "=" * 64
+
+_DBT_CMD = (
+    'echo "" && '
+    'echo "================================================================" && '
+    'echo "  DBT RUN STARTING" && '
+    'echo "  Image : $HOSTNAME" && '
+    'echo "================================================================" && '
+    'echo "" && '
+    'dbt run && '
+    'echo "" && '
+    'echo "================================================================" && '
+    'echo "  DBT RUN COMPLETED SUCCESSFULLY" && '
+    'echo "================================================================" && '
+    'echo ""'
+)
+
+
+# ── Callbacks ────────────────────────────────────────────────────────────────
+
+def _on_start(context: dict) -> None:
+    ti = context["ti"]
+    log.info(_SEP)
+    log.info("  [ATLAS] Warehouse sync starting")
+    log.info("  Task    : %s", ti.task_id)
+    log.info("  DAG Run : %s", ti.run_id)
+    log.info("  Image   : %s", DBT_IMAGE)
+    log.info("  NS      : %s", DBT_NAMESPACE)
+    log.info(_SEP)
+
+
+def _on_success(context: dict) -> None:
+    ti = context["ti"]
+    log.info(_SEP)
+    log.info("  [ATLAS] Warehouse sync completed successfully")
+    log.info("  Task    : %s", ti.task_id)
+    log.info("  DAG Run : %s", ti.run_id)
+    log.info(_SEP)
+
+
+def _on_failure(context: dict) -> None:
+    ti = context["ti"]
+    log.error(_SEP)
+    log.error("  [ATLAS] Warehouse sync FAILED")
+    log.error("  Task      : %s", ti.task_id)
+    log.error("  DAG Run   : %s", ti.run_id)
+    log.error("  Exception : %s", context.get("exception"))
+    log.error(_SEP)
+
+
+# ── DAG ──────────────────────────────────────────────────────────────────────
 
 @dag(
     dag_id="atlas_warehouse_sync",
@@ -40,13 +95,22 @@ def atlas_warehouse_sync():
     Triggered by `airbyte_check_sync_status` once all Airbyte syncs succeed.
     Spins up a fresh pod with the dbt image, runs `dbt run`, then tears it down.
     Credentials are injected from the `atlas-dbt-env` Kubernetes Secret.
+
+    Pod log structure:
+        ═══ [ATLAS] Warehouse sync starting   ← Airflow callback
+        ════════════════════════════════════
+          DBT RUN STARTING                    ┐
+          <dbt output>                        ├─ streamed from pod
+          DBT RUN COMPLETED SUCCESSFULLY      ┘
+        ═══ [ATLAS] Warehouse sync completed  ← Airflow callback
     """
     KubernetesPodOperator(
         task_id="run_dbt",
         name="atlas-dbt-run",
         namespace=DBT_NAMESPACE,
         image=DBT_IMAGE,
-        cmds=["dbt", "run"],
+        cmds=["sh", "-c"],
+        arguments=[_DBT_CMD],
         kubernetes_conn_id=KUBE_CONN_ID,
         image_pull_secrets=[
             k8s.V1LocalObjectReference(name="dockerhub-creds")
@@ -69,10 +133,13 @@ def atlas_warehouse_sync():
                 read_only=True,
             )
         ],
-        is_delete_operator_pod=True,  # clean up pod after run
+        is_delete_operator_pod=True,
         get_logs=True,
         in_cluster=True,
         startup_timeout_seconds=300,
+        on_execute_callback=_on_start,
+        on_success_callback=_on_success,
+        on_failure_callback=_on_failure,
     )
 
 
