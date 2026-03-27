@@ -529,7 +529,7 @@ data:
 
   metadataSecretName: ~
   resultBackendSecretName: ~
-  brokerUrlSecretName: ~
+  brokerUrlSecretName: "airflow-prod-broker-url"
 
   # Otherwise pass connection values in
   metadataConnection:
