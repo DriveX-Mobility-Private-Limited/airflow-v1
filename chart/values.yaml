@@ -529,7 +529,7 @@ data:
 
   metadataSecretName: ~
   resultBackendSecretName: ~
-  brokerUrlSecretName: "airflow-prod-broker-url"
+  brokerUrlSecretName: ~
 
   # Otherwise pass connection values in
   metadataConnection:
@@ -3287,7 +3287,7 @@ redis:
   #   memory: 128Mi
 
   # If set use as redis secret. Make sure to also set data.brokerUrlSecretName value.
-  passwordSecretName: "airflow-prod-redis-password"
+  passwordSecretName: ~
 
   # Else, if password is set, create secret with it,
   # Otherwise a new password will be generated on install
