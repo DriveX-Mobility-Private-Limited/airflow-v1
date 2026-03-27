@@ -24,8 +24,8 @@ from airflow.sdk import dag
 from kubernetes.client import models as k8s
 
 KUBE_CONN_ID  = "kubernetes_default"
-DBT_NAMESPACE = "data-warehouse"
-DBT_IMAGE     = "drivexdocker/atlas-dev:4-31ec062"
+DBT_NAMESPACE = "airflow"
+DBT_IMAGE     = "drivexdocker/atlas-prod:21-3419b8c"
 
 
 @dag(
@@ -53,13 +53,13 @@ def atlas_warehouse_sync():
         ],
         env_from=[
             k8s.V1EnvFromSource(
-                secret_ref=k8s.V1SecretEnvSource(name="atlas-dbt-env")
+                secret_ref=k8s.V1SecretEnvSource(name="atlas-dbt-prod-env")
             )
         ],
         volumes=[
             k8s.V1Volume(
                 name="dbt-profiles",
-                config_map=k8s.V1ConfigMapVolumeSource(name="atlas-dbt-profiles"),
+                config_map=k8s.V1ConfigMapVolumeSource(name="atlas-dbt-profiles-prod"),
             )
         ],
         volume_mounts=[
