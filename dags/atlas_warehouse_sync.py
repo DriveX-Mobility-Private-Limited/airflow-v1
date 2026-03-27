@@ -56,6 +56,19 @@ def atlas_warehouse_sync():
                 secret_ref=k8s.V1SecretEnvSource(name="atlas-dbt-env")
             )
         ],
+        volumes=[
+            k8s.V1Volume(
+                name="dbt-profiles",
+                config_map=k8s.V1ConfigMapVolumeSource(name="atlas-dbt-profiles"),
+            )
+        ],
+        volume_mounts=[
+            k8s.V1VolumeMount(
+                name="dbt-profiles",
+                mount_path="/root/.dbt",
+                read_only=True,
+            )
+        ],
         is_delete_operator_pod=True,  # clean up pod after run
         get_logs=True,
         in_cluster=True,
