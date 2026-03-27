@@ -25,7 +25,7 @@ from kubernetes.client import models as k8s
 
 KUBE_CONN_ID  = "kubernetes_default"
 DBT_NAMESPACE = "data-warehouse"
-DBT_IMAGE     = "drivexdocker/atlas-prod:latest"
+DBT_IMAGE     = "drivexdocker/atlass-dev:4-31ec062"
 
 
 @dag(
