@@ -3736,10 +3736,10 @@ dags:
     # ssh example: git@github.com:apache/airflow.git
     # https example: https://github.com/apache/airflow.git
     repo: https://github.com/DriveX-Mobility-Private-Limited/airflow-v1.git
-    branch: Dev
+    branch: main
     rev: HEAD
     # The git revision (branch, tag, or hash) to check out, v4 only
-    ref: Dev
+    ref: main
     depth: 1
     # the number of consecutive failures allowed before aborting
     maxFailures: 0
